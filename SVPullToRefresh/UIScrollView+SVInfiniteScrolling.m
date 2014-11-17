@@ -66,7 +66,7 @@ UIEdgeInsets scrollViewOriginalContentInsets;
 }
 
 - (void)triggerInfiniteScrolling {
-    self.infiniteScrollingView.state = SVInfiniteScrollingStateTriggered;
+    self.infiniteScrollingView.state = SVInfiniteScrollingStateLoading;
     [self.infiniteScrollingView startAnimating];
 }
 
@@ -196,10 +196,8 @@ UIEdgeInsets scrollViewOriginalContentInsets;
         CGFloat scrollViewContentHeight = self.scrollView.contentSize.height;
         CGFloat scrollOffsetThreshold = scrollViewContentHeight-self.scrollView.bounds.size.height;
         
-        if(!self.scrollView.isDragging && self.state == SVInfiniteScrollingStateTriggered)
+        if(contentOffset.y > scrollOffsetThreshold && self.state == SVInfiniteScrollingStateStopped && self.scrollView.isDragging)
             self.state = SVInfiniteScrollingStateLoading;
-        else if(contentOffset.y > scrollOffsetThreshold && self.state == SVInfiniteScrollingStateStopped && self.scrollView.isDragging)
-            self.state = SVInfiniteScrollingStateTriggered;
         else if(contentOffset.y < scrollOffsetThreshold  && self.state != SVInfiniteScrollingStateStopped)
             self.state = SVInfiniteScrollingStateStopped;
     }
@@ -243,7 +241,6 @@ UIEdgeInsets scrollViewOriginalContentInsets;
 #pragma mark -
 
 - (void)triggerRefresh {
-    self.state = SVInfiniteScrollingStateTriggered;
     self.state = SVInfiniteScrollingStateLoading;
 }
 
@@ -256,10 +253,6 @@ UIEdgeInsets scrollViewOriginalContentInsets;
 }
 
 - (void)setState:(SVInfiniteScrollingState)newState {
-    
-    if(_state == newState)
-        return;
-    
     SVInfiniteScrollingState previousState = _state;
     _state = newState;
     
@@ -287,14 +280,13 @@ UIEdgeInsets scrollViewOriginalContentInsets;
                 [self.activityIndicatorView stopAnimating];
                 break;
                 
-            case SVInfiniteScrollingStateTriggered:
             case SVInfiniteScrollingStateLoading:
                 [self.activityIndicatorView startAnimating];
                 break;
         }
     }
     
-    if(previousState == SVInfiniteScrollingStateTriggered && newState == SVInfiniteScrollingStateLoading && self.infiniteScrollingHandler && self.enabled)
+    if(newState == SVInfiniteScrollingStateLoading && self.infiniteScrollingHandler && self.enabled)
         self.infiniteScrollingHandler();
 }
 
