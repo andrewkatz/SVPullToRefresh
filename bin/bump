@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# coding: utf-8
+
+set -e
+
+POD_NAME='SVPullToRefresh'
+POD_SPEC="$POD_NAME.podspec"
+VERSION="$1"
+
+# Update podspec file
+sed -i .old "s/\(s.version[[:space:]]*\)=.*/\1= '$VERSION'/" $POD_SPEC
+rm $POD_SPEC.old
+
+# Commit changes and tag
+git add $POD_SPEC
+git commit -m "Bump version to '$VERSION'"
+git push
+git tag $VERSION
+git push --tags
+
+# TODO: clean up tag if validation fails
+# Update private pod repo
+pod repo push greenbits $POD_SPEC
